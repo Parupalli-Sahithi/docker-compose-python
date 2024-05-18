@@ -1,0 +1,57 @@
+trigger:
+  branches:
+    include:
+      - master
+
+pr:
+  branches:
+    include:
+      - '*'
+
+resources:
+- repo: self
+
+variables:
+  imageName: 'sahithiajay/phxtraining:001'
+
+
+stages:
+- stage: Build_and_Push
+  displayName: 'Build and Push Docker Image'
+  jobs:
+  - job: Build_and_Push_Job
+    displayName: 'Build Image'
+    pool:
+      name: Sahithi
+    steps:    
+      - task: Docker@2
+        inputs:
+          containerRegistry: 'PHX_DOCKER_HUB'
+          repository: 'sahithiajay/phxtraining'
+          command: 'buildAndPush'
+          tags: |
+            $(Build.BuildId)
+            latest
+- stage: Deploy
+  displayName: Deploy stage
+  dependsOn: Build_and_Push
+  jobs:
+  - job: Deploy
+    displayName: Deploy
+    pool:
+      name: Sahithi
+    steps:
+     - checkout: self
+     - task: PowerShell@2
+       inputs:
+          targetType: 'inline'
+          script: |
+            $composePath = "$(System.DefaultWorkingDirectory)/docker-compose-python/docker-compose.yml"
+            $content = Get-Content -Path $composePath -Raw
+            $newContent = $content -replace 'sahithiajay/phxtraining:001', 'sahithiajay/phxtraining:$(Build.BuildId)'
+            Set-Content -Path $composePath -Value $newContent
+     - task: CmdLine@2
+       inputs:
+         script: 'docker compose up -d'
+         workingDirectory: '$(Build.SourcesDirectory)/docker-compose-python'
+      

@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   app:
-    image: sahithiajay/phxtraining:001
+    build: .
     volumes:
       - .:/usr/src/app
       - /c/Users/Sahithi Parupalli:/home
