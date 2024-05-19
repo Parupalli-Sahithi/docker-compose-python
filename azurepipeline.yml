@@ -46,12 +46,12 @@ stages:
        inputs:
           targetType: 'inline'
           script: |
-            $composePath = "$(System.DefaultWorkingDirectory)/docker-compose-python/docker-compose"
+            $composePath = "$(System.DefaultWorkingDirectory)/docker-compose"
             $content = Get-Content -Path $composePath -Raw
             $newContent = $content -replace 'sahithiajay/phxtraining:001', 'sahithiajay/phxtraining:$(Build.BuildId)'
             Set-Content -Path $composePath -Value $newContent
      - task: CmdLine@2
        inputs:
          script: 'docker compose up -d'
-         workingDirectory: '$(Build.SourcesDirectory)/docker-compose-python'
+         workingDirectory: '$(Build.SourcesDirectory)'
       
